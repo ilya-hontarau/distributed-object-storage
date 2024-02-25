@@ -12,6 +12,7 @@ package mock
 import (
 	context "context"
 	io "io"
+	fs "io/fs"
 	reflect "reflect"
 
 	gomock "go.uber.org/mock/gomock"
@@ -56,7 +57,7 @@ func (mr *MockStorageNodeMockRecorder) Download(ctx, id any) *gomock.Call {
 }
 
 // Upload mocks base method.
-func (m *MockStorageNode) Upload(ctx context.Context, id string, file io.Reader) error {
+func (m *MockStorageNode) Upload(ctx context.Context, id string, file fs.File) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Upload", ctx, id, file)
 	ret0, _ := ret[0].(error)

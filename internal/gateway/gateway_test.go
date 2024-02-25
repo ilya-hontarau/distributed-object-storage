@@ -21,8 +21,8 @@ func TestGateway_Upload(t *testing.T) {
 	node2.EXPECT().Upload(context.Background(), "test1", strings.NewReader("node2"))
 	node3 := mock.NewMockStorageNode(ctrl)
 	node3.EXPECT().Upload(context.Background(), "test", strings.NewReader("node3"))
-	gateway := NewGateway([]StorageNode{node1, node2, node3})
 
+	gateway := NewGateway([]StorageNode{node1, node2, node3})
 	err := gateway.Upload(context.Background(), "node1", strings.NewReader("node1"))
 	assert.NoError(t, err)
 	err = gateway.Upload(context.Background(), "test1", strings.NewReader("node2"))

@@ -6,12 +6,13 @@ import (
 	"fmt"
 	"hash/fnv"
 	"io"
+	"io/fs"
 )
 
 var ErrNotFound = errors.New("not found")
 
 type StorageNode interface {
-	Upload(ctx context.Context, id string, file io.Reader) error
+	Upload(ctx context.Context, id string, file fs.File) error
 	Download(ctx context.Context, id string) (io.Reader, error)
 }
 
@@ -23,7 +24,7 @@ func NewGateway(nodes []StorageNode) *Gateway {
 	return &Gateway{nodes: nodes}
 }
 
-func (g *Gateway) Upload(ctx context.Context, id string, file io.Reader) error {
+func (g *Gateway) Upload(ctx context.Context, id string, file fs.File) error {
 	idx := g.nodeIdx(id)
 	node := g.nodes[idx]
 	err := node.Upload(ctx, id, file)
@@ -48,6 +49,7 @@ func (g *Gateway) nodeIdx(id string) int {
 }
 
 func hash(id string, maxIdx int) int {
+	// TODO: add hash function configurable
 	h := fnv.New32a()
 	_, _ = h.Write([]byte(id))
 	sum32 := h.Sum32()
