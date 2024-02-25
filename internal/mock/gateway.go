@@ -12,7 +12,6 @@ package mock
 import (
 	context "context"
 	io "io"
-	fs "io/fs"
 	reflect "reflect"
 
 	gomock "go.uber.org/mock/gomock"
@@ -57,15 +56,15 @@ func (mr *MockStorageNodeMockRecorder) Download(ctx, id any) *gomock.Call {
 }
 
 // Upload mocks base method.
-func (m *MockStorageNode) Upload(ctx context.Context, id string, file fs.File) error {
+func (m *MockStorageNode) Upload(ctx context.Context, id string, file io.Reader, contentLength int) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Upload", ctx, id, file)
+	ret := m.ctrl.Call(m, "Upload", ctx, id, file, contentLength)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Upload indicates an expected call of Upload.
-func (mr *MockStorageNodeMockRecorder) Upload(ctx, id, file any) *gomock.Call {
+func (mr *MockStorageNodeMockRecorder) Upload(ctx, id, file, contentLength any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Upload", reflect.TypeOf((*MockStorageNode)(nil).Upload), ctx, id, file)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Upload", reflect.TypeOf((*MockStorageNode)(nil).Upload), ctx, id, file, contentLength)
 }
