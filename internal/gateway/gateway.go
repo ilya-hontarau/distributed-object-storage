@@ -6,13 +6,12 @@ import (
 	"fmt"
 	"hash/fnv"
 	"io"
-	"io/fs"
 )
 
 var ErrNotFound = errors.New("not found")
 
 type StorageNode interface {
-	Upload(ctx context.Context, id string, file fs.File) error
+	Upload(ctx context.Context, id string, file io.Reader, contentLength int) error
 	Download(ctx context.Context, id string) (io.Reader, error)
 }
 
@@ -24,10 +23,10 @@ func NewGateway(nodes []StorageNode) *Gateway {
 	return &Gateway{nodes: nodes}
 }
 
-func (g *Gateway) Upload(ctx context.Context, id string, file fs.File) error {
+func (g *Gateway) Upload(ctx context.Context, id string, file io.Reader, contentLength int) error {
 	idx := g.nodeIdx(id)
 	node := g.nodes[idx]
-	err := node.Upload(ctx, id, file)
+	err := node.Upload(ctx, id, file, contentLength)
 	if err != nil {
 		return fmt.Errorf("failed to upload file: %w", err)
 	}

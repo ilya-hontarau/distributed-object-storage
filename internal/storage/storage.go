@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/fs"
 
 	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
 )
 
 type Minio struct {
@@ -14,14 +14,22 @@ type Minio struct {
 	bucketName string
 }
 
-func NewMinio(ctx context.Context, endpoint, bucketName string) (*Minio, error) {
-	client, err := minio.New(endpoint, nil)
+func NewMinio(ctx context.Context, endpoint, bucketName, id, secret string) (*Minio, error) {
+	client, err := minio.New(endpoint, &minio.Options{
+		Creds: credentials.NewStaticV4(id, secret, ""),
+	})
 	if err != nil {
 		return nil, err
 	}
-	err = client.MakeBucket(ctx, bucketName, minio.MakeBucketOptions{})
+	exists, err := client.BucketExists(ctx, bucketName)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create bucket: %w", err)
+		return nil, err
+	}
+	if !exists {
+		err = client.MakeBucket(ctx, bucketName, minio.MakeBucketOptions{})
+		if err != nil {
+			return nil, fmt.Errorf("failed to create bucket: %w", err)
+		}
 	}
 	return &Minio{
 		client:     client,
@@ -29,12 +37,8 @@ func NewMinio(ctx context.Context, endpoint, bucketName string) (*Minio, error) 
 	}, nil
 }
 
-func (m *Minio) Upload(ctx context.Context, id string, file fs.File) error {
-	stat, err := file.Stat()
-	if err != nil {
-		return fmt.Errorf("failed to get file stat: %w", err)
-	}
-	_, err = m.client.PutObject(ctx, m.bucketName, id, file, stat.Size(), minio.PutObjectOptions{})
+func (m *Minio) Upload(ctx context.Context, id string, file io.Reader, contentLength int) error {
+	_, err := m.client.PutObject(ctx, m.bucketName, id, file, int64(contentLength), minio.PutObjectOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to put object: %w", err)
 	}
