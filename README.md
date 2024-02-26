@@ -1,3 +1,6 @@
+# Distributed object storage
+
+## Task definition
 Hey there! Hope you'll have at least as much fun with this exercise, as we had designing it 😄
 
 Your starting point is a local Docker daemon with multiple self-contained Minio Object Storage instances.
@@ -36,3 +39,16 @@ docker-compose up --build
 ```
 
 Good luck!
+
+## Task Realisation
+
+Package structure uses recommended official go layout.
+
+cmd/server: contains main for server and injection logic.
+
+internal/gateway: implementation of proxying logic.
+internal/mock: for generated mock objects.
+internal/server: implementation of http server.
+internal/storage: wrapper around minio api.
+internal/svcdiscovery: creates a minio discovery mechanism based on docker client
+internal/tests: contains tests and benchmarks.
