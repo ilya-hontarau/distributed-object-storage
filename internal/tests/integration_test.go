@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestUpload(t *testing.T) {
+func TestUploadDownload(t *testing.T) {
 	t.Run("happy path", func(t *testing.T) {
 		id := generateCorrectID()
 		wantBody := "test"
@@ -56,13 +56,33 @@ func TestUpload(t *testing.T) {
 	})
 }
 
+func BenchmarkUploadDownloadSmallBody(b *testing.B) {
+	body1kb := randomString(1024)
+	for i := 0; i < b.N; i++ {
+		id := generateCorrectID()
+		putObjectBody(b, id, body1kb, http.StatusOK)
+
+		body := getObjectBody(b, id, http.StatusOK)
+		assert.Equal(b, body1kb, body)
+	}
+}
+
+func BenchmarkUploadDownloadBifBody(b *testing.B) {
+	body1kb := randomString(1024 * 1024 * 50)
+	for i := 0; i < b.N; i++ {
+		id := generateCorrectID()
+		putObjectBody(b, id, body1kb, http.StatusOK)
+
+		body := getObjectBody(b, id, http.StatusOK)
+		assert.Equal(b, body1kb, body)
+	}
+}
+
 func generateCorrectID() string {
 	return uuid.NewString()[:32]
 }
 
-func putObjectBody(t *testing.T, id string, body string, expStatusCode int) {
-	t.Helper()
-
+func putObjectBody(t require.TestingT, id string, body string, expStatusCode int) {
 	req, err := http.NewRequest(http.MethodPut, "http://localhost:3000/object/"+id, strings.NewReader(body))
 	require.NoError(t, err)
 	resp, err := http.DefaultClient.Do(req)
@@ -71,8 +91,7 @@ func putObjectBody(t *testing.T, id string, body string, expStatusCode int) {
 	resp.Body.Close()
 }
 
-func getObjectBody(t *testing.T, id string, expStatusCode int) string {
-	t.Helper()
+func getObjectBody(t require.TestingT, id string, expStatusCode int) string {
 
 	resp, err := http.Get("http://localhost:3000/object/" + id)
 	require.NoError(t, err)

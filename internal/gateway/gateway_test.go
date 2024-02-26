@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
@@ -29,4 +30,16 @@ func TestGateway_Upload(t *testing.T) {
 	assert.NoError(t, err)
 	err = gateway.Upload(context.Background(), "test", strings.NewReader("node3"), 5)
 	assert.NoError(t, err)
+}
+
+func TestHashDistribution(t *testing.T) {
+	counters := make(map[int]int)
+	for range 10000 {
+		id := uuid.NewString()
+		idx := hash(id, 3)
+		counters[idx]++
+	}
+	assert.Greater(t, counters[0], 3000)
+	assert.Greater(t, counters[1], 3000)
+	assert.Greater(t, counters[2], 3000)
 }

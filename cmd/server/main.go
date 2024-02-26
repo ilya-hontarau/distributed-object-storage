@@ -27,6 +27,7 @@ type Config struct {
 }
 
 func main() {
+	// TODO: log panic
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
 	var envCfg Config
