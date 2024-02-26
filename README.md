@@ -57,3 +57,9 @@ Package structure uses recommended official go layout.
 `internal/svcdiscovery`: creates a minio discovery mechanism based on docker client.
 
 `internal/tests`: contains tests and benchmarks.
+
+## TODO
+-  Add makefile with test(integration and unit, build, run, generate mocks, benchmarska)
+-  Add ci
+-  Improve observabilitu
+- Configure hashes algos
