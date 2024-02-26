@@ -27,4 +27,5 @@ jobs:
       - name: Test
         run: |
           docker-compose ps
+          docker-compose logs gateway-container
           go test -v -cover --race --tags="integration_tests" ./...
