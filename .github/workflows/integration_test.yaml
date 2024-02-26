@@ -26,4 +26,5 @@ jobs:
 
       - name: Test
         run: |
-          sleep 5 && go test -v -cover --race --tags="integration_tests" ./...
+          docker-compose ps
+          go test -v -cover --race --tags="integration_tests" ./...
