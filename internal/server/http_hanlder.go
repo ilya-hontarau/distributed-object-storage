@@ -2,6 +2,7 @@ package server
 
 import (
 	"bytes"
+	"errors"
 	"io"
 	"log/slog"
 	"net/http"
@@ -31,6 +32,7 @@ func (h *HTTPHandler) UploadFile(w http.ResponseWriter, req *http.Request) {
 	// TODO: validate id
 	// TODO: check content length
 	// TODO: set max value
+	// TODO: content type
 	bodyBytes, err := io.ReadAll(http.MaxBytesReader(w, req.Body, 10000))
 	if err != nil {
 		h.logger.Debug("Request is too big")
@@ -52,8 +54,11 @@ func (h *HTTPHandler) DownloadFile(w http.ResponseWriter, req *http.Request) {
 	// TODO: validate id
 
 	file, err := h.gateway.Download(req.Context(), id)
-	// TODO: return not found
 	if err != nil {
+		if errors.Is(err, gateway.ErrNotFound) {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
 		h.logger.Error("Failed to download", slog.String("error", err.Error()))
 		w.WriteHeader(http.StatusInternalServerError)
 		return

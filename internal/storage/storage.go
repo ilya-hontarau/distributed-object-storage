@@ -4,9 +4,12 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net/http"
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
+
+	"github.com/ilya-hontarau/distributed-object-storage/internal/gateway"
 )
 
 type Minio struct {
@@ -50,6 +53,14 @@ func (m *Minio) Download(ctx context.Context, id string) (io.Reader, error) {
 	object, err := m.client.GetObject(ctx, m.bucketName, id, minio.GetObjectOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to get object: %w", err)
+	}
+	_, err = object.Stat()
+	if err != nil {
+		errResponse := minio.ToErrorResponse(err)
+		if errResponse.StatusCode == http.StatusNotFound {
+			return nil, gateway.ErrNotFound
+		}
+		return nil, fmt.Errorf("failed to get object stat: %w", err)
 	}
 	return object, nil
 }

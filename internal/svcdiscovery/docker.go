@@ -6,6 +6,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
@@ -41,31 +42,48 @@ func (d *Docker) MinioConfigs(ctx context.Context) ([]MinioConfig, error) {
 		if ctr.Image != d.imageName {
 			continue
 		}
-		settings := ctr.NetworkSettings.Networks["distributed-object-storage_amazin-object-storage"]
-		if settings == nil {
-			// TODO
-		}
-		inspect, err := d.client.ContainerInspect(ctx, ctr.ID)
+		cfg, err := d.minioConfigFromContainer(ctx, ctr)
 		if err != nil {
 			return nil, err
 		}
-		accessKeyIdx := slices.IndexFunc(inspect.Config.Env, func(s string) bool {
-			return strings.HasPrefix(s, "MINIO_ACCESS_KEY=")
-		})
-		if accessKeyIdx == -1 {
-			// TODO
-		}
-		secretKeyIdx := slices.IndexFunc(inspect.Config.Env, func(s string) bool {
-			return strings.HasPrefix(s, "MINIO_SECRET_KEY=")
-		})
-		if secretKeyIdx == -1 {
-			// TODO
-		}
-		configs = append(configs, MinioConfig{
-			AccessKey: strings.TrimPrefix(inspect.Config.Env[accessKeyIdx], "MINIO_ACCESS_KEY="),
-			SecretKey: strings.TrimPrefix(inspect.Config.Env[secretKeyIdx], "MINIO_SECRET_KEY="),
-			Addr:      settings.IPAddress + ":9000",
-		})
+		configs = append(configs, cfg)
 	}
 	return configs, nil
+}
+
+func (d *Docker) minioConfigFromContainer(ctx context.Context, ctr types.Container) (MinioConfig, error) {
+	networkKey := "distributed-object-storage_amazin-object-storage"
+	settings := ctr.NetworkSettings.Networks[networkKey]
+	if settings == nil {
+		return MinioConfig{}, fmt.Errorf("failed to find %s", networkKey)
+	}
+	inspect, err := d.client.ContainerInspect(ctx, ctr.ID)
+	if err != nil {
+		return MinioConfig{}, err
+	}
+	accessKey, err := valueFromEnvConfig(inspect.Config.Env, "MINIO_ACCESS_KEY")
+	if err != nil {
+		return MinioConfig{}, err
+	}
+	secretKey, err := valueFromEnvConfig(inspect.Config.Env, "MINIO_SECRET_KEY")
+	if err != nil {
+		return MinioConfig{}, err
+	}
+	cfg := MinioConfig{
+		AccessKey: accessKey,
+		SecretKey: secretKey,
+		Addr:      settings.IPAddress + ":9000",
+	}
+	return cfg, nil
+}
+
+func valueFromEnvConfig(envs []string, name string) (string, error) {
+	prefix := name + "="
+	idx := slices.IndexFunc(envs, func(s string) bool {
+		return strings.HasPrefix(s, prefix)
+	})
+	if idx == -1 {
+		return "", fmt.Errorf("failed to find env in config: %s", name)
+	}
+	return strings.TrimPrefix(envs[idx], prefix), nil
 }

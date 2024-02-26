@@ -29,8 +29,7 @@ func main() {
 	}
 	storageNodes := make([]gateway.StorageNode, 0, len(configs))
 	for _, cfg := range configs {
-		logger.Info("config", slog.String("key", cfg.AccessKey), slog.String("secret", cfg.SecretKey))
-		minio, err := storage.NewMinio(context.Background(), cfg.Addr, "default", cfg.AccessKey, cfg.SecretKey)
+		minio, err := storage.NewMinio(context.TODO(), cfg.Addr, "default", cfg.AccessKey, cfg.SecretKey)
 		if err != nil {
 			panic(err)
 		}
