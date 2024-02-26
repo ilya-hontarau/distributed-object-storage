@@ -1,0 +1,23 @@
+version: '3'
+
+tasks:
+  mock-gen:
+    cmds:
+      - mockgen -source internal/gateway/gateway.go -destination internal/mock/gateway.go -package mock
+  unit-tests:
+    cmds:
+      - go test -v -cover ./...
+  integration-tests:
+    cmds:
+      - docker-compose up --build -d
+      - go test -v -cover --tags="integration_tests" ./... # TODO: we should wait for compose
+      - docker-compose down
+  run-app:
+    cmds:
+      - docker-compose up --build -d
+  build:
+    cmds:
+      - go build -o homework-object-storage ./cmd/server/...
+  lint:
+    cmds:
+      - golangci-lint run  ./...

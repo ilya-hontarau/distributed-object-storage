@@ -1,4 +1,5 @@
-// TODO: use build tags
+//go:build integration_tests
+
 package tests
 
 import (
