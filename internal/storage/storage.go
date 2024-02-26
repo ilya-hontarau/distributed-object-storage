@@ -14,9 +14,10 @@ type Minio struct {
 	bucketName string
 }
 
-func NewMinio(ctx context.Context, endpoint, bucketName, id, secret string) (*Minio, error) {
+// TODO: refactor signature
+func NewMinio(ctx context.Context, endpoint, bucketName, accessKey, secretKey string) (*Minio, error) {
 	client, err := minio.New(endpoint, &minio.Options{
-		Creds: credentials.NewStaticV4(id, secret, ""),
+		Creds: credentials.NewStaticV4(accessKey, secretKey, ""),
 	})
 	if err != nil {
 		return nil, err

@@ -1,9 +1,11 @@
-FROM golang:1.15
+FROM golang:1.22
 WORKDIR /mnt/homework
 COPY . .
-RUN go build
+ENV CGO_ENABLED 0
+RUN go build -o homework-object-storage ./cmd/server/...
 
 # Docker is used as a base image so you can easily start playing around in the container using the Docker command line client.
 FROM docker
-COPY --from=0 /mnt/homework/homework-object-storage /usr/local/bin/homework-object-storage
+COPY --from=0 /mnt/homework/homework-object-storage homework-object-storage
 RUN apk add bash curl
+CMD ["./homework-object-storage"]
