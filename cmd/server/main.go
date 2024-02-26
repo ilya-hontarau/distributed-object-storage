@@ -48,7 +48,12 @@ func main() {
 	}
 	storageNodes := make([]gateway.StorageNode, 0, len(configs))
 	for _, cfg := range configs {
-		minio, err := storage.NewMinio(context.TODO(), cfg.Addr, envCfg.BucketName, cfg.AccessKey, cfg.SecretKey)
+		minio, err := storage.NewMinio(context.TODO(), storage.MinioConfig{
+			Endpoint:   cfg.Addr,
+			BucketName: envCfg.BucketName,
+			AccessKey:  cfg.AccessKey,
+			SecretKey:  cfg.SecretKey,
+		})
 		if err != nil {
 			panic(err)
 		}

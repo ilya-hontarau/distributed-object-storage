@@ -48,7 +48,7 @@ func (g *Gateway) nodeIdx(id string) int {
 }
 
 func hash(id string, maxIdx int) int {
-	// TODO: add hash function configurable
+	// TODO: make hash function configurable
 	h := fnv.New32a()
 	_, _ = h.Write([]byte(id))
 	sum32 := h.Sum32()

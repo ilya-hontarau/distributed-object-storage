@@ -32,11 +32,8 @@ func NewHTTPHandler(gateway *gateway.Gateway, logger *slog.Logger) *HTTPHandler 
 	return h
 }
 
-func isValidID(id string) bool {
-	return len(id) > 1 && len(id) <= 32 && !strings.Contains(id, " ")
-}
-
 func (h *HTTPHandler) UploadFile(w http.ResponseWriter, req *http.Request) {
+	// TODO: support content type and use body for error response
 	id := req.PathValue("id")
 	if !isValidID(id) {
 		w.WriteHeader(http.StatusBadRequest)
@@ -58,6 +55,7 @@ func (h *HTTPHandler) UploadFile(w http.ResponseWriter, req *http.Request) {
 }
 
 func (h *HTTPHandler) DownloadFile(w http.ResponseWriter, req *http.Request) {
+	// TODO: support content type and use body for error response
 	id := req.PathValue("id")
 	if !isValidID(id) {
 		w.WriteHeader(http.StatusBadRequest)
@@ -81,4 +79,8 @@ func (h *HTTPHandler) DownloadFile(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	h.logger.Debug("Successfully downloaded", slog.String("id", id))
+}
+
+func isValidID(id string) bool {
+	return len(id) > 1 && len(id) <= 32 && !strings.Contains(id, " ")
 }
