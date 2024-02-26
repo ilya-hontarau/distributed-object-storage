@@ -4,6 +4,7 @@ go 1.22
 
 require (
 	github.com/docker/docker v25.0.3+incompatible
+	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/minio/minio-go/v7 v7.0.67
 	github.com/stretchr/testify v1.8.4
 	go.uber.org/mock v0.4.0
