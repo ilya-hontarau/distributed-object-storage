@@ -1,0 +1,40 @@
+name: Integration tests
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  run:
+    name: Run integration tests
+    runs-on: ubuntu-22.04
+    timeout-minutes: 3
+    steps:
+      - name: Install Latest Docker
+        run: |
+          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+          sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu  $(lsb_release -cs)  stable"
+          sudo apt-get update
+          sudo apt-get install docker-ce
+
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Database
+        run:  docker-compose up -d --build
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.22'
+          cache-dependency-path: go.sum
+
+      - name: Test
+        run: |
+          docker-compose ps
+          docker-compose logs gateway-container
+          go test -v -cover --race --count=1 --tags="integration_tests" ./...

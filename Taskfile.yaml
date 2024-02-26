@@ -10,7 +10,7 @@ tasks:
   integration-tests:
     cmds:
       - docker-compose up --build -d
-      - go test -v -cover --tags="integration_tests" ./... # TODO: we should wait for compose
+      - go test -v -cover -count=1 --tags="integration_tests" ./... # TODO: we should wait for compose
       - docker-compose down
   run-app:
     cmds:
