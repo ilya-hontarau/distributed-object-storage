@@ -1,14 +1,13 @@
-name: integration tests
+name: Integration tests
 
 on:
   pull_request:
     branches:
       - main
-  push:
 
 jobs:
   run:
-    name: Test
+    name: Run integration tests
     runs-on: ubuntu-22.04
     timeout-minutes: 2
     steps:
@@ -26,4 +25,4 @@ jobs:
 
       - name: Test
         run: |
-          go test -v -cover --race --tags="integration_tests" ./...
+          sleep 5 && go test -v -cover --race --tags="integration_tests" ./...
