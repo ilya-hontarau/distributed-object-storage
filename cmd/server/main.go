@@ -2,13 +2,18 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/docker/docker/client"
 	"github.com/kelseyhightower/envconfig"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/ilya-hontarau/distributed-object-storage/internal/gateway"
 	"github.com/ilya-hontarau/distributed-object-storage/internal/server"
@@ -52,10 +57,43 @@ func main() {
 	gateway := gateway.NewGateway(storageNodes)
 	handler := server.NewHTTPHandler(gateway, logger)
 
-	// TODO: add graceful shutdown
 	logger.Info("Starting server...", slog.Int("port", envCfg.Port))
-	err = http.ListenAndServe(fmt.Sprintf(":%d", envCfg.Port), handler)
+	err = runServer(envCfg, handler)
 	if err != nil {
 		panic(err)
 	}
+}
+
+func runServer(cfg Config, handler http.Handler) error {
+	httpServer := &http.Server{
+		Addr:              fmt.Sprintf(":%d", cfg.Port),
+		Handler:           handler,
+		ReadHeaderTimeout: time.Second,
+	}
+	exitCtx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	var group errgroup.Group
+	group.Go(func() error {
+		err := httpServer.ListenAndServe()
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			return fmt.Errorf("failed to listen and serve: %w", err)
+		}
+		return nil
+	})
+	group.Go(func() error {
+		<-exitCtx.Done()
+		ctx, cancelF := context.WithTimeout(context.Background(), time.Second)
+		defer cancelF()
+		err := httpServer.Shutdown(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to shutdown server: %w", err)
+		}
+		return nil
+	})
+	err := group.Wait()
+	if err != nil {
+		return fmt.Errorf("failed to wait for group: %w", err)
+	}
+	return nil
 }

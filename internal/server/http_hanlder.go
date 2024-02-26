@@ -17,9 +17,11 @@ type HTTPHandler struct {
 }
 
 func NewHTTPHandler(gateway *gateway.Gateway, logger *slog.Logger) *HTTPHandler {
-	h := &HTTPHandler{}
-	h.gateway = gateway
-	h.logger = logger
+	h := &HTTPHandler{
+		Handler: nil,
+		gateway: gateway,
+		logger:  logger,
+	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("PUT /object/{id}", h.UploadFile)
 	mux.HandleFunc("GET /object/{id}", h.DownloadFile)

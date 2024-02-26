@@ -8,6 +8,7 @@ require (
 	github.com/minio/minio-go/v7 v7.0.67
 	github.com/stretchr/testify v1.8.4
 	go.uber.org/mock v0.4.0
+	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
 )
 
 require (

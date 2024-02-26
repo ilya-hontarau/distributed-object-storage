@@ -59,7 +59,7 @@ func (d *Docker) minioConfigFromContainer(ctx context.Context, ctr types.Contain
 	}
 	inspect, err := d.client.ContainerInspect(ctx, ctr.ID)
 	if err != nil {
-		return MinioConfig{}, err
+		return MinioConfig{}, fmt.Errorf("failed to inspect container: %w", err)
 	}
 	accessKey, err := valueFromEnvConfig(inspect.Config.Env, "MINIO_ACCESS_KEY")
 	if err != nil {

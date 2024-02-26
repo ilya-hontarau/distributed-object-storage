@@ -17,17 +17,17 @@ type Minio struct {
 	bucketName string
 }
 
-// TODO: refactor signature
 func NewMinio(ctx context.Context, endpoint, bucketName, accessKey, secretKey string) (*Minio, error) {
+	// TODO: refactor signature
 	client, err := minio.New(endpoint, &minio.Options{
 		Creds: credentials.NewStaticV4(accessKey, secretKey, ""),
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create a new client: %w", err)
 	}
 	exists, err := client.BucketExists(ctx, bucketName)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to check bucket exists: %w", err)
 	}
 	if !exists {
 		err = client.MakeBucket(ctx, bucketName, minio.MakeBucketOptions{})
