@@ -6,9 +6,12 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"strings"
 
 	"github.com/ilya-hontarau/distributed-object-storage/internal/gateway"
 )
+
+const maxSize = 1024 * 1024 * 50
 
 type HTTPHandler struct {
 	http.Handler
@@ -29,15 +32,18 @@ func NewHTTPHandler(gateway *gateway.Gateway, logger *slog.Logger) *HTTPHandler 
 	return h
 }
 
+func isValidID(id string) bool {
+	return len(id) > 1 && len(id) <= 32 && !strings.Contains(id, " ")
+}
+
 func (h *HTTPHandler) UploadFile(w http.ResponseWriter, req *http.Request) {
 	id := req.PathValue("id")
-	// TODO: validate id
-	// TODO: check content length
-	// TODO: set max value
-	// TODO: content type
-	bodyBytes, err := io.ReadAll(http.MaxBytesReader(w, req.Body, 10000))
+	if !isValidID(id) {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	bodyBytes, err := io.ReadAll(http.MaxBytesReader(w, req.Body, maxSize))
 	if err != nil {
-		h.logger.Debug("Request is too big")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -53,7 +59,10 @@ func (h *HTTPHandler) UploadFile(w http.ResponseWriter, req *http.Request) {
 
 func (h *HTTPHandler) DownloadFile(w http.ResponseWriter, req *http.Request) {
 	id := req.PathValue("id")
-	// TODO: validate id
+	if !isValidID(id) {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
 	file, err := h.gateway.Download(req.Context(), id)
 	if err != nil {

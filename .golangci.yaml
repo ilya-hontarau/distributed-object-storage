@@ -289,6 +289,10 @@ issues:
   exclude-rules:
     - linters: govet
       text: "shadow: declaration of .err. shadows declaration"
+    - linters:
+        - noctx
+        - gosec
+      path: _test.go
 
 
 service:
